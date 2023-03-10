@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "projet-kahoot-bouvier": {
+      "hosting": {
+        "Miahoot": [
+          "projet-kahoot-bouvier"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "projet-kahoot-bouvier"
+  }
+}
