@@ -1,27 +1,24 @@
-    <mat-toolbar color="primary">
+<mat-toolbar color="primary">
+    <h1>Miahoot</h1>
+    <ng-container *ngIf="user | async as U; else unlogged">
+        <div class="toolbar">
+            <!-- <button (click)="logout()" mat-raised-button color="accent">Log Out</button> -->
+            {{U.displayName}}
+        </div>
+        <button id="ppButton" [matMenuTriggerFor]="menu"><img id="pp" [src]="U.photoURL"/></button>
+        <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="toAccountConfig()">My Account</button>
+            <button mat-menu-item (click)="logout()">Log out</button>
+          </mat-menu>
+    </ng-container>
 
-        <ng-container *ngIf = "user | async as U; else unlogged" >
-            <h1 id="title">MIAHOOT</h1>
-            <div class="profile-infos">
-                <button mat-stroked-button color="accent" (click)="logout()">LOGOUT</button>
-                {{U.displayName}}
-            </div>
-            <button [matMenuTriggerFor]="menu">
-                <img [src]="U.photoURL" class="profile-picture"/>
-            </button>
-            <mat-menu #menu="matMenu">
-                <button (click)="toAccountConfig()">Configurer</button>
-            </mat-menu>
-            
-        </ng-container>
-        <ng-template #unlogged>
-            <button mat-stroked-button color="warm" (click)="login()">LOGIN GOOGLE</button>
-        </ng-template>
-
-    </mat-toolbar>  
+    <ng-template #unlogged>
+        <button id="signInButton" (click)="login()" mat-raised-button color="accent"> login with google</button>
+    </ng-template>
+</mat-toolbar>
 
 <mat-progress-spinner *ngIf="bsIsAuth | async" mode="indeterminate">
-   En cours d'authentification 
+   En cours d'authentification...
 </mat-progress-spinner>
 
 
