@@ -12,6 +12,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
 export class AppComponent {
   public readonly user: Observable<User | null>;
   public bsIsAuth = new BehaviorSubject<boolean>( false );
+
+  
   constructor(private auth: Auth, private router :Router) {
     this.user = authState(this.auth);
   }

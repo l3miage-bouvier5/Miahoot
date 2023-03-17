@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Auth, authState, user } from '@angular/fire/auth';
+import { Auth, authState, User } from '@angular/fire/auth';
 import { docData, Firestore, FirestoreDataConverter, QueryDocumentSnapshot, SnapshotOptions } from '@angular/fire/firestore';
-import { collection, doc, DocumentReference, getDoc, setDoc } from '@firebase/firestore';
-import { map, Observable, of, switchMap } from 'rxjs';
+import { doc, getDoc, setDoc } from '@firebase/firestore';
+import { filter, map, Observable, of, switchMap, tap } from 'rxjs';
 
 
 export interface MiahootUser{
@@ -28,52 +28,36 @@ const conv : FirestoreDataConverter<MiahootUser> = {
 @Injectable({
   providedIn: 'root'
 })
-export class DataService {
+export class DataService{
 
-  obsMiahootUser : Observable<MiahootUser|undefined>;
+  obsMiahootUser$ : Observable<MiahootUser|undefined>;
 
-  constructor(private auth: Auth, private fs : Firestore) { 
-    this.obsMiahootUser = authState(this.auth).pipe(
-      switchMap((user) => {
+  constructor(private auth: Auth, private fs : Firestore) {
+    authState(this.auth).pipe(
+      filter( u => !!u ),
+      map( u => u as User ),
+      tap( async u => {
+        const docUser =  doc(this.fs, `users/${u.uid}`).withConverter(conv) ;
+        const snapUser = await getDoc( docUser );
+        if (!snapUser.exists()) {
+          setDoc(docUser, {
+            name: u.displayName ?? u.email ?? u.uid,
+            photoUrl: u.photoURL ?? ""
+          } satisfies MiahootUser)
+        }
+      })
+    ).subscribe()
+    this.obsMiahootUser$ = authState(this.auth).pipe(
+      switchMap( (user) => {
         if(user){
           const userRef = doc(this.fs , `users/${user.uid}`).withConverter(conv)
           const userData$ = docData(userRef)
-          var docSnapshot = await getDoc(userRef)
-          if(!docSnapshot.exists()){
-            await setDoc(userRef,{
-              name: user.displayName,
-              photoUrl: user.photoURL
-            })
-          }
           return userData$
-        }else{
-          of(undefined)
+        } else{
+          return of(undefined)
         }
       })
     )
   }
 }
-   
-   
-    //   switchMap(user => {
-    //     if (user) {
-    //       const userRef = doc(this.fs,`users/${user.uid}`).withConverter(conv);
-    //       const userData$: Observable<MiahootUser> = docData(userRef);
-    //       const createUserData$ = async (): Promise<MiahootUser|undefined> => {
-    //         const docSnapshot = await getDoc(userRef);
-    //         if (!docSnapshot.exists()) {
-    //           setDoc(userRef,{name:user.displayName, photoUrl:user.photoURL)
-    //         } else {
-    //           return userData$
-    //           };
-             
-    //         }
-    //       };
-    //       // Combiner les observables userData$ et createUserData$ en un seul observable
-    //     } else {
-    //       return of(undefined);
-    //     }
-    //   }
-    // );
-  }
-}
+  
